@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#07111f" />
+  <meta name="description" content="A simple launcher for Bill's favorite mobility and fitness channels and playlists." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <title>Bill's Mobility</title>
+  <style>
+    :root{color-scheme:dark;--bg:#07111f;--panel:#0e1b2d;--panel2:#12243a;--text:#f4f7fb;--muted:#9fb0c4;--accent:#77aef7;--line:#20344d;--ok:#79d89b;--danger:#ff9c9c}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:16px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,a{font:inherit}
+    button{color:inherit}
+    .app{width:min(960px,100%);margin:0 auto;padding:calc(env(safe-area-inset-top) + 20px) 16px calc(env(safe-area-inset-bottom) + 34px)}
+    header{display:flex;align-items:end;justify-content:space-between;gap:14px;margin-bottom:18px}
+    h1{font-size:clamp(1.7rem,5vw,2.4rem);line-height:1;margin:0}.sub{margin:7px 0 0;color:var(--muted);font-size:.93rem}
+    .today{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:11px 13px;font-weight:750;min-width:92px}.today.done{border-color:var(--ok);color:var(--ok)}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 22px}.action{border:0;border-radius:16px;padding:15px;background:var(--accent);color:#07111f;font-weight:850}.action.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+    section{margin:0 0 24px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.section-head h2{font-size:1rem;text-transform:uppercase;letter-spacing:.09em;margin:0;color:#dbe8f7}.count{color:var(--muted);font-size:.8rem}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .card{position:relative;min-height:112px;text-align:left;border:1px solid var(--line);border-radius:17px;background:linear-gradient(180deg,var(--panel2),var(--panel));padding:15px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;box-shadow:0 6px 20px rgba(0,0,0,.15)}
+    .card strong{font-size:1.06rem}.card small{display:block;color:var(--muted);margin-top:3px}.tag{align-self:flex-start;border:1px solid #345171;border-radius:999px;padding:3px 7px;font-size:.69rem;font-weight:800;letter-spacing:.05em;color:#bad5f7}.tag.short{border-color:#6c5e30;color:#f0d888}.tag.mix{border-color:#4d6a59;color:#aee0c0}
+    .card:active,.action:active,.today:active{transform:translateY(1px)}
+    .history{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{aspect-ratio:1;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;background:var(--panel);font-size:.8rem;color:var(--muted)}.day.done{background:#143326;border-color:#35704c;color:#b8efca}.day.todaymark{outline:2px solid var(--accent);outline-offset:1px}
+    dialog{width:min(620px,calc(100% - 24px));max-height:88vh;border:1px solid var(--line);border-radius:20px;background:#091625;color:var(--text);padding:0;box-shadow:0 30px 80px rgba(0,0,0,.55)}dialog::backdrop{background:rgba(0,0,0,.72)}
+    .modal-head{position:sticky;top:0;background:#091625;border-bottom:1px solid var(--line);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:2}.modal-head h3{margin:0;font-size:1.1rem}.close{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 10px}
+    .modal-body{padding:14px}.source-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}.source-actions a,.source-actions button{display:block;text-align:center;text-decoration:none;border:1px solid var(--line);background:var(--panel);color:var(--text);padding:11px;border-radius:12px;font-weight:750}.source-actions .primary{background:var(--accent);color:#07111f;border-color:transparent}
+    .player{aspect-ratio:16/9;width:100%;border:0;border-radius:14px;background:#000}.note{color:var(--muted);font-size:.88rem;margin:10px 2px 0}.random-card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:16px}.random-card h4{font-size:1.25rem;margin:0 0 6px}.random-card p{color:var(--muted);margin:0 0 14px}.random-card a{display:block;text-align:center;text-decoration:none;background:var(--accent);color:#07111f;padding:12px;border-radius:12px;font-weight:850}
+    footer{text-align:center;color:#64768b;font-size:.75rem;margin-top:28px}
+    @media (min-width:700px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}.card{min-height:128px}.actions{grid-template-columns:220px 220px;justify-content:start}.app{padding-inline:24px}}
+    @media (prefers-reduced-motion:no-preference){.card,.action,.today{transition:transform .08s ease,border-color .15s ease}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header>
+    <div><h1>Bill's Mobility</h1><p class="sub">Pick something. Move. Done.</p></div>
+    <button id="todayBtn" class="today" type="button">✓ Today</button>
+  </header>
+
+  <div class="actions">
+    <button class="action" id="mixBtn" type="button">Mix it up</button>
+    <button class="action secondary" id="calendarBtn" type="button">Recent days</button>
+  </div>
+
+  <section>
+    <div class="section-head"><h2>Favorites</h2><span class="count" id="favCount"></span></div>
+    <div class="grid" id="favorites"></div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>My playlists</h2><span class="count" id="playlistCount"></span></div>
+    <div class="grid" id="playlists"></div>
+  </section>
+
+  <section id="recentSection">
+    <div class="section-head"><h2>Last 14 days</h2><span class="count" id="streakText"></span></div>
+    <div class="history" id="history"></div>
+  </section>
+  <footer>Videos stay on YouTube. Daily checkmarks stay on this device.</footer>
+</main>
+
+<dialog id="sourceDialog">
+  <div class="modal-head"><h3 id="sourceTitle">Source</h3><button class="close" data-close="sourceDialog">Close</button></div>
+  <div class="modal-body" id="sourceBody"></div>
+</dialog>
+
+<dialog id="mixDialog">
+  <div class="modal-head"><h3>Mix it up</h3><button class="close" data-close="mixDialog">Close</button></div>
+  <div class="modal-body"><div class="random-card"><span class="tag mix">RANDOM PICK</span><h4 id="mixTitle"></h4><p id="mixMeta"></p><a id="mixOpen" target="_blank" rel="noopener">Open on YouTube</a><button class="action secondary" style="width:100%;margin-top:9px" id="mixAgain" type="button">Another one</button></div></div>
+</dialog>
+
+<script>
+const SOURCES = {
+  favorites: [
+    {name:'smoov Movement', handle:'@smoovmoves', url:'https://youtube.com/@smoovmoves', kind:'channel'},
+    {name:'LeoMoves', handle:'@leomoves', url:'https://youtube.com/@leomoves', kind:'channel'},
+    {name:'GMB Fitness', handle:'@gmbfit', url:'https://youtube.com/@gmbfit', kind:'channel'},
+    {name:'Limitless Sapiens', handle:'@limitless.sapiens', url:'https://youtube.com/@limitless.sapiens', kind:'channel'},
+    {name:'JB23 Fit', handle:'@jb23_fit', url:'https://youtube.com/@jb23_fit/shorts', kind:'shorts'},
+    {name:'Gymnastics Method', handle:'@gymnasticsmethod', url:'https://youtube.com/@gymnasticsmethod', kind:'channel'}
+  ],
+  playlists: [
+    {name:'My playlist 1', id:'PLhNBJluw3b3BkGf0_q_E6Qx8W93WzjWur', kind:'playlist'},
+    {name:'My playlist 2', id:'PLhNBJluw3b3CLwnfnT-Iuopn1LyltYlqQ', kind:'playlist'},
+    {name:'My playlist 3', id:'PLQc3Fjysa4JU', kind:'playlist'},
+    {name:'My playlist 4', id:'PLhNBJluw3b3BrKH2kxaIl-ZaWaAU7CgNz', kind:'playlist'},
+    {name:'Anything else', id:'PLhNBJluw3b3DnjMu5vrpVe1UfoWo2BLAq', kind:'playlist', generic:true}
+  ]
+};
+const playlistUrl = id => `https://youtube.com/playlist?list=${id}`;
+const $ = s => document.querySelector(s);
+const localDay = d => { const x = new Date(d); x.setMinutes(x.getMinutes()-x.getTimezoneOffset()); return x.toISOString().slice(0,10); };
+const todayKey = () => localDay(new Date());
+const getDays = () => new Set(JSON.parse(localStorage.getItem('mobilityDays') || '[]'));
+const saveDays = set => localStorage.setItem('mobilityDays', JSON.stringify([...set].sort()));
+
+function cardFor(source){
+  const b=document.createElement('button'); b.className='card'; b.type='button';
+  const label=source.kind==='shorts'?'SHORTS':source.generic?'MIXED PLAYLIST':source.kind==='playlist'?'PLAYLIST':'CHANNEL';
+  b.innerHTML=`<div><strong>${source.name}</strong><small>${source.handle||'My YouTube list'}</small></div><span class="tag ${source.kind==='shorts'?'short':''}">${label}</span>`;
+  b.addEventListener('click',()=>openSource(source)); return b;
+}
+function renderSources(){
+  SOURCES.favorites.forEach(s=>$('#favorites').append(cardFor(s)));
+  SOURCES.playlists.forEach(s=>$('#playlists').append(cardFor(s)));
+  $('#favCount').textContent=`${SOURCES.favorites.length} sources`;
+  $('#playlistCount').textContent=`${SOURCES.playlists.length} lists`;
+}
+function openSource(source){
+  $('#sourceTitle').textContent=source.name;
+  const url=source.kind==='playlist'?playlistUrl(source.id):source.url;
+  if(source.kind==='playlist'){
+    $('#sourceBody').innerHTML=`<div class="source-actions"><a class="primary" href="${url}" target="_blank" rel="noopener">Open in YouTube</a><button type="button" id="shuffleThis">Randomize list</button></div><iframe class="player" src="https://www.youtube-nocookie.com/embed/videoseries?list=${source.id}" title="${source.name}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe><p class="note">This uses YouTube's playlist player. If YouTube blocks an item or asks you to sign in, use “Open in YouTube.”</p>`;
+    setTimeout(()=>{ const x=$('#shuffleThis'); if(x) x.onclick=()=>window.open(`${url}&playnext=1&index=${Math.floor(Math.random()*20)}`,'_blank','noopener'); },0);
+  } else {
+    $('#sourceBody').innerHTML=`<div class="source-actions"><a class="primary" href="${url}" target="_blank" rel="noopener">Open videos</a><a href="${source.kind==='shorts'?source.url:source.url+'/videos'}" target="_blank" rel="noopener">Browse latest</a></div><div class="random-card"><h4>${source.name}</h4><p>Open the creator's live YouTube ${source.kind==='shorts'?'Shorts':'video'} feed. This keeps the app free and avoids a YouTube API key or fragile scraping.</p><a href="${url}" target="_blank" rel="noopener">Go to ${source.handle}</a></div>`;
+  }
+  $('#sourceDialog').showModal();
+}
+function pickRandom(){
+  const all=[...SOURCES.favorites,...SOURCES.playlists];
+  const s=all[Math.floor(Math.random()*all.length)];
+  $('#mixTitle').textContent=s.name;
+  $('#mixMeta').textContent=s.kind==='playlist'?(s.generic?'Your catch-all playlist':'One of your saved playlists'):(s.kind==='shorts'?'Quick Shorts source':`Creator ${s.handle}`);
+  $('#mixOpen').href=s.kind==='playlist'?playlistUrl(s.id):s.url;
+}
+function renderHistory(){
+  const days=getDays(), wrap=$('#history'); wrap.innerHTML=''; let count=0;
+  for(let i=13;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const k=localDay(d); const el=document.createElement('div'); el.className='day'+(days.has(k)?' done':'')+(k===todayKey()?' todaymark':''); el.title=k; el.textContent=days.has(k)?'✓':d.getDate(); wrap.append(el); if(days.has(k))count++; }
+  $('#streakText').textContent=`${count} active`;
+  const done=days.has(todayKey()); $('#todayBtn').classList.toggle('done',done); $('#todayBtn').textContent=done?'✓ Done':'✓ Today';
+}
+$('#todayBtn').addEventListener('click',()=>{ const d=getDays(), k=todayKey(); d.has(k)?d.delete(k):d.add(k); saveDays(d); renderHistory(); });
+$('#mixBtn').addEventListener('click',()=>{pickRandom();$('#mixDialog').showModal();});
+$('#mixAgain').addEventListener('click',pickRandom);
+$('#calendarBtn').addEventListener('click',()=>$('#recentSection').scrollIntoView({behavior:'smooth',block:'start'}));
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>document.getElementById(b.dataset.close).close()));
+document.querySelectorAll('dialog').forEach(d=>d.addEventListener('click',e=>{if(e.target===d)d.close();}));
+renderSources();renderHistory();
+if('serviceWorker' in navigator) addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body>
+</html>
