@@ -8,7 +8,8 @@ test('launches with expected sources and rugged shell', async ({ page }) => {
   await expect(page.getByRole('heading', { name: "Bill's Mobility" })).toBeVisible();
   await expect(page.locator('#creators .card')).toHaveCount(6);
   await expect(page.locator('#playlists .card')).toHaveCount(5);
-  await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(5, 5, 5)');
+  await expect(page.locator('html')).toHaveCSS('background-color', 'rgb(5, 5, 5)');
+  await expect(page.locator('body')).toHaveCSS('background-image', /radial-gradient/);
   await expect(page.getByRole('button', { name: 'Mix it up' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Saved videos/i })).toBeVisible();
 });
